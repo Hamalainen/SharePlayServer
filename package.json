@@ -1,19 +1,29 @@
 {
-  "name": "websockets-socket.io",
+  "name": "SharePlay-server",
   "version": "1.0.0",
-  "engines": {
-    "node": "6.2.0"
-  },
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": "10.15.1"
+  },
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hamalainen/SharePlayServer.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Hamalainen/SharePlayServer/issues"
+  },
+  "homepage": "https://github.com/Hamalainen/SharePlayServer#readme",
   "dependencies": {
-    "express": "4.13.4",
-    "socket.io": "1.4.6"
-  }
+    "express": "4.16.4",
+    "socket.io": "2.2.0"
+  },
+  "heroku-run-build-script": true
 }
