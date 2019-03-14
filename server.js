@@ -4,7 +4,7 @@ const express = require("express");
 const socketIO = require('socket.io');
 const path = require('path');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4200;
 const INDEX = path.join(__dirname, 'index.html');
 
 const server = express()
@@ -13,9 +13,27 @@ const server = express()
 
 const io = socketIO(server);
 
+const playlists ={};
+
 io.on('connection', (socket) => {
-  console.log('Client connected');
-  socket.on('disconnect', () => console.log('Client disconnected'));
+  let previousId;
+  const safeJoin = currentId => {
+      socket.leave(previousId);
+      socket.join(currentId, () => console.log(`Socket ${socket.id} joined room ${currentId}`));
+      previousId = currentId;
+  }
+
+  console.log(`Client ${socket.id} connected`);
+  socket.on('disconnect', () => console.log(`Client ${socket.id} disconnected`));
+
+  socket.on('getPlayList', playlistId => {
+    safeJoin(playlistId);
+    socket.emit('playlist', playlists[playlistId])
+});
+
+
+
+
 });
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
