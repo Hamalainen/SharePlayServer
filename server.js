@@ -26,9 +26,12 @@ io.on('connection', (socket) => {
   console.log(`Client ${socket.id} connected`);
   socket.on('disconnect', () => console.log(`Client ${socket.id} disconnected`));
 
-  socket.on('getPlayList', playlistId => {
-    safeJoin(playlistId);
-    socket.emit('playlist', playlists[playlistId])
+  let playlist = ['Y128KEvu6FI' , 'YgwOBoE5X1s'];
+
+  socket.on('getPlayList', () => {
+    console.log(`client ${socket.id} requested playlist:  ${playlist}`)
+    socket.emit('playlist', {
+      playlist: playlist});
 });
 
 
