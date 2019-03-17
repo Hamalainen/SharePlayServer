@@ -30,11 +30,11 @@ io.on('connection', (socket) => {
       });
 
   socket.on('addedToPlaylist', (video) => {
-    // if (!playlist.playlist.some((e) => e.id === video.id)) {
+    if(!playlist.playlist.indexOf(video.id) > -1) {
       console.log('added: ' + video.id);
       playlist.playlist.push(video.id);
-      io.sockets.emit('addedToPlaylist', video);
-    // }
+      io.sockets.emit('added', video);
+    }
   });
 
   socket
