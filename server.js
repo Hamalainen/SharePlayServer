@@ -31,7 +31,7 @@ io.on('connection', (socket) => {
   socket.on('getPlayList', () => {
     console.log(`client ${socket.id} requested playlist:  ${playlist}`)
     socket.emit('playlist', {
-      playlist: playlist});
+      playlist: 'Y128KEvu6FI'});
 });
 
 
