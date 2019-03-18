@@ -13,9 +13,15 @@ const server = express()
 
 const io = socketIO(server);
 
-let playlist = { playlist: [] };
+let room = {
+  master: null,
+  playlist: [],
+  currentVideo: null,
+  playerState: 8
+};
 
 io.on('connection', (socket) => {
+  room.master = socket.id;
   let previousId;
   const safeJoin = currentId => {
     socket.leave(previousId);
@@ -24,36 +30,39 @@ io.on('connection', (socket) => {
   }
 
   socket.on('removedFromPlaylist', (video) => {
-    playlist.playlist.splice(playlist.playlist.indexOf(video.id), 1);
+    room.playlist.splice(room.playlist.indexOf(video.id), 1);
     console.log('removed: ' + video.id);
     socket.broadcast.emit('removed', video);
-    
+
   });
 
   socket.on('addedToPlaylist', (video) => {
-    if(!playlist.playlist.includes(video.id)) {
+    if (!room.playlist.includes(video.id)) {
       console.log('added: ' + video.id);
-      playlist.playlist.push(video.id);
+      room.playlist.push(video.id);
 
       socket.broadcast.emit('added', video);
     }
   });
 
+  socket.on('play', (video) => {
+    room.currentVideo = video;
+    socket.broadcast.emit('playing', video);
+  });
 
-  socket.emit('playlist', playlist);
+  socket.on('playerEvent', (event) => {
+    setTimeout(function(){
+      room.playerState = event;
+      socket.broadcast.emit('playerState', event);
+    }, 2000);
+    });
+  
+
+
+  socket.emit('room', room);
 
   console.log(`Client ${socket.id} connected`);
   socket.on('disconnect', () => console.log(`Client ${socket.id} disconnected`));
-
-
-
-  socket.on('getPlayList', () => {
-    console.log(`client ${socket.id} requested playlist:  ${playlist}`)
-    socket.emit('playlist', {
-      playlist: 'Y128KEvu6FI'
-    });
-  });
-
 });
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
