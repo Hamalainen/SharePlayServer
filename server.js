@@ -23,21 +23,22 @@ io.on('connection', (socket) => {
     previousId = currentId;
   }
 
-
-      socket.on('updatePlayList', (video) => {
-        console.log('update server');
-        io.socket.emit('updateplaylist', video);
-      });
+  socket.on('removedFromPlaylist', (video) => {
+    playlist.playlist.splice(playlist.playlist.indexOf(video.id), 1);
+    console.log('removed: ' + video.id);
+    socket.broadcast.emit('removed', video);
+    
+  });
 
   socket.on('addedToPlaylist', (video) => {
-    if(!playlist.playlist.indexOf(video.id) > -1) {
+    if(!playlist.playlist.includes(video.id)) {
       console.log('added: ' + video.id);
       playlist.playlist.push(video.id);
-      io.sockets.emit('added', video);
+
+      socket.broadcast.emit('added', video);
     }
   });
 
-  socket
 
   socket.emit('playlist', playlist);
 
