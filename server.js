@@ -13,56 +13,100 @@ const server = express()
 
 const io = socketIO(server);
 
-let room = {
-  master: null,
-  playlist: [],
-  currentVideo: null,
-  playerState: 8
-};
+let rooms = [
+  {
+    id: '',
+    roomName: 'room1',
+    master: null,
+    playlist: [],
+    currentVideo: null,
+    playerState: 8,
+    timestamp: 0
+  }
+]
 
 io.on('connection', (socket) => {
-  room.master = socket.id;
-  let previousId;
-  const safeJoin = currentId => {
-    socket.leave(previousId);
-    socket.join(currentId, () => console.log(`Socket ${socket.id} joined room ${currentId}`));
-    previousId = currentId;
-  }
 
-  socket.on('removedFromPlaylist', (video) => {
-    room.playlist.splice(room.playlist.indexOf(video.id), 1);
-    console.log('removed: ' + video.id);
-    socket.broadcast.emit('removed', video);
-
-  });
-
-  socket.on('addedToPlaylist', (video) => {
-    if (!room.playlist.includes(video.id)) {
-      console.log('added: ' + video.id);
-      room.playlist.push(video.id);
-
-      socket.broadcast.emit('added', video);
+  socket.on('joinroom', (roomId) => {
+    console.log('roomid = ' + roomId);
+    var roomExist = false;
+    socket.join(roomId)
+    for (var room of rooms) {
+      if (room.id === roomId) {
+        roomExist = true;
+        socket.to(roomId).emit('room', room);
+        console.log(`socket ${socket.id} joined ${room.id}`);
+        break;
+      }
+    }
+    if (!roomExist) {
+      var room = {
+        id: roomId,
+        master: socket.id,
+        playlist: [],
+        currentVideo: null,
+        playerState: 8,
+        timestamp: 0
+      };
+      rooms.push(room);
+      socket.to(roomId).emit('room', room);
+      console.log(`socket ${socket.id} created ${room.id}`);
     }
   });
 
-  socket.on('play', (video) => {
-    room.currentVideo = video;
-    socket.broadcast.emit('playing', video);
+  socket.on('removedFromPlaylist', (res) => {
+    for (var room of rooms) {
+      if (room.id === res.roomId) {
+        room.playlist.splice(room.playlist.indexOf(res.video.id), 1);
+        console.log('removed: ' + res.video.id + 'from roomid: ' + room.id);
+        break;
+      }
+    }
+    socket.to(res.roomId).emit('removed', res.video);
   });
 
-  socket.on('playerEvent', (event) => {
-    setTimeout(function(){
-      room.playerState = event;
-      socket.broadcast.emit('playerState', event);
-    }, 2000);
-    });
-  
+  socket.on('addedToPlaylist', (res) => {
+    for (var room of rooms) {
+      if (room.id === res.roomId) {
+        if (!room.playlist.includes(res.video.id)) {
+          console.log('added: ' + res.video.id);
+          room.playlist.push(res.video.id);
+          break;
+        }
+      }
+    }
+    socket.to(res.roomId).emit('added', res.video);
+  });
 
+  socket.on('play', (res) => {
+    for (var room of rooms) {
+      if (room.id === res.roomId) {
+        room.currentVideo = res.video;
+        break;
+      }
+    }
+    socket.to(res.roomId).emit('playing', res.video);
+  });
 
-  socket.emit('room', room);
+  // socket.on('playerEvent', (event) => {
+  //     room.playerState = event;
+  //     socket.to(res.roomId).emit('playerState', event);
+  //   });
 
   console.log(`Client ${socket.id} connected`);
-  socket.on('disconnect', () => console.log(`Client ${socket.id} disconnected`));
+  socket.on('disconnect', () => {
+    // if(socket.id === room.master){
+    //   if(io.sockets.clients().sockets !== null){
+    //     console.log(`Client ${room.master} is now disconnected and not master anymore`);
+    //     // var socketlist = io.sockets.connected();
+
+    //     // console.log(socketlist);
+    //     room.master = io.sockets.clients().sockets;
+    //     console.log(`Client ${room.master} is now master`);
+    //   }
+    // }
+    console.log(`Client ${socket.id} disconnected`);
+  });
 });
 
 setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
