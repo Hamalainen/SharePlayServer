@@ -4,7 +4,8 @@ const express = require("express");
 const socketIO = require('socket.io');
 const path = require('path');
 
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 const INDEX = path.join(__dirname, 'index.html');
 
 const server = express()
@@ -40,15 +41,13 @@ io.on('connection', (socket) => {
     }
     if (!roomExist) {
       var room = {
-        id: "",
-        master: "",
+        id: roomId,
+        master: socket.id,
         playlist: [],
         currentVideo: null,
         playerState: 8,
         timestamp: 0
       };
-      room.id = roomId;
-      room.master = socket.id;
       rooms.push(room);
       io.in(roomId).emit('room', room);
       console.log(`socket ${socket.id} created ${room.id}`);
