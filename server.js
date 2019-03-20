@@ -28,7 +28,6 @@ let rooms = [
 io.on('connection', (socket) => {
 
   socket.on('joinroom', (roomId) => {
-    console.log('roomid = ' + roomId);
     var roomExist = false;
     socket.join(roomId)
     for (var room of rooms) {
@@ -41,13 +40,15 @@ io.on('connection', (socket) => {
     }
     if (!roomExist) {
       var room = {
-        id: roomId,
-        master: socket.id,
+        id: "",
+        master: "",
         playlist: [],
         currentVideo: null,
         playerState: 8,
         timestamp: 0
       };
+      room.id = roomId;
+      room.master = socket.id;
       rooms.push(room);
       io.in(roomId).emit('room', room);
       console.log(`socket ${socket.id} created ${room.id}`);
@@ -93,31 +94,35 @@ io.on('connection', (socket) => {
   });
 
   socket.on('playerEvent', (res) => {
-    for (var room in rooms) {
+    console.log('playerevent: ' + res.event.data);
+    for (var room of rooms) {
       if (room.id === res.roomId) {
-        if (res.event == 1) {
+        console.log('room.id: ' + room.id);
+        if (res.event.data == 1) {
           // play - only mastersocket can play.
           if (room.master == socket.id) {
-            room.playerState = res.event;
+            console.log('master play');
+            room.playerState = res.event.data;
             socket.to(res.roomId).emit('playerState', room);
           }
           else {
             io.in(res.roomId).emit('playerState', room);
           }
         }
-        if (res.event == 2) {
+        if (res.event.data == 2) {
           // // pause - only mastersocket can pause.
           if (room.master == socket.id) {
-            room.playerState = res.event;
+            console.log('master pause');
+            room.playerState = res.event.data;
             socket.to(res.roomId).emit('playerState', room);
           }
           else {
             io.in(res.roomId).emit('playerState', room);
           }
         }
-        if (res.event == 3) {
+        if (res.event.data == 3) {
           // someone is buffering - pause all others
-          room.playerState = res.event;
+          room.playerState = res.event.data;
           socket.to(res.roomId).emit('playerState', room);
         }
       }
