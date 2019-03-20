@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
     for (var room of rooms) {
       if (room.id === roomId) {
         roomExist = true;
-        socket.to(roomId).emit('room', room);
+        io.in(roomId).emit('room', room);
         console.log(`socket ${socket.id} joined ${room.id}`);
         break;
       }
@@ -49,10 +49,14 @@ io.on('connection', (socket) => {
         timestamp: 0
       };
       rooms.push(room);
-      socket.to(roomId).emit('room', room);
+      io.in(roomId).emit('room', room);
       console.log(`socket ${socket.id} created ${room.id}`);
     }
   });
+
+  socket.on('requestRoom', (roomId) => {
+    io.in(roomId).emit('room', room);
+  })
 
   socket.on('removedFromPlaylist', (res) => {
     for (var room of rooms) {
