@@ -92,10 +92,37 @@ io.on('connection', (socket) => {
     socket.to(res.roomId).emit('playing', res.video);
   });
 
-  // socket.on('playerEvent', (event) => {
-  //     room.playerState = event;
-  //     socket.to(res.roomId).emit('playerState', event);
-  //   });
+  socket.on('playerEvent', (res) => {
+    for (var room in rooms) {
+      if (room.id === res.roomId) {
+        if (res.event == 1) {
+          // play - only mastersocket can play.
+          if (room.master == socket.id) {
+            room.playerState = res.event;
+            socket.to(res.roomId).emit('playerState', room);
+          }
+          else {
+            io.in(res.roomId).emit('playerState', room);
+          }
+        }
+        if (res.event == 2) {
+          // // pause - only mastersocket can pause.
+          if (room.master == socket.id) {
+            room.playerState = res.event;
+            socket.to(res.roomId).emit('playerState', room);
+          }
+          else {
+            io.in(res.roomId).emit('playerState', room);
+          }
+        }
+        if (res.event == 3) {
+          // someone is buffering - pause all others
+          room.playerState = res.event;
+          socket.to(res.roomId).emit('playerState', room);
+        }
+      }
+    }
+  });
 
   console.log(`Client ${socket.id} connected`);
   socket.on('disconnect', () => {
