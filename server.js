@@ -16,13 +16,13 @@ const io = socketIO(server);
 
 let rooms = [
   {
-    id: '',
-    roomName: 'room1',
-    master: null,
-    playlist: [],
-    currentVideo: null,
-    playerState: 8,
-    timestamp: 0
+    // id: '',
+    // roomName: 'room1',
+    // master: null,
+    // playlist: [],
+    // currentVideo: null,
+    // playerState: 8,
+    // currentTime: 0
   }
 ]
 
@@ -46,12 +46,16 @@ io.on('connection', (socket) => {
         playlist: [],
         currentVideo: null,
         playerState: 8,
-        timestamp: 0
+        currentTime: 0
       };
       rooms.push(room);
       io.in(roomId).emit('room', room);
       console.log(`socket ${socket.id} created ${room.id}`);
     }
+
+    // console.log(socket.rooms);
+
+    // console.log(Object.keys(io.sockets.sockets));
   });
 
   socket.on('requestRoom', (roomId) => {
@@ -68,6 +72,17 @@ io.on('connection', (socket) => {
     }
     socket.to(res.roomId).emit('removed', res.video);
   });
+
+  socket.on('realTime', (res) => {
+    for(var room of rooms){
+      if(room.id === res.roomId){
+        if(room.master === socket.id){
+          room.currentVideo = res.currentVideo;
+          room.currentTime = res.currentTime;
+        }
+      }
+    }
+  })
 
   socket.on('addedToPlaylist', (res) => {
     for (var room of rooms) {
@@ -89,6 +104,7 @@ io.on('connection', (socket) => {
         break;
       }
     }
+
     socket.to(res.roomId).emit('playing', res.video);
   });
 
@@ -102,9 +118,12 @@ io.on('connection', (socket) => {
           if (room.master == socket.id) {
             console.log('master play');
             room.playerState = res.event.data;
+            room.currentVideo = res.currentVideo;
+            room.currentTime = res.currentTime;
             socket.to(res.roomId).emit('playerState', room);
           }
           else {
+            console.log('peasant play');
             io.in(res.roomId).emit('playerState', room);
           }
         }
@@ -113,15 +132,20 @@ io.on('connection', (socket) => {
           if (room.master == socket.id) {
             console.log('master pause');
             room.playerState = res.event.data;
+            room.currentVideo = res.currentVideo;
+            room.currentTime = res.currentTime;
             socket.to(res.roomId).emit('playerState', room);
           }
           else {
+            console.log('peasant pause');
             io.in(res.roomId).emit('playerState', room);
           }
         }
         if (res.event.data == 3) {
           // someone is buffering - pause all others
           room.playerState = res.event.data;
+          room.currentVideo = res.currentVideo;
+          room.currentTime = res.currentTime;
           socket.to(res.roomId).emit('playerState', room);
         }
       }
@@ -130,18 +154,29 @@ io.on('connection', (socket) => {
 
   console.log(`Client ${socket.id} connected`);
   socket.on('disconnect', () => {
-    // if(socket.id === room.master){
-    //   if(io.sockets.clients().sockets !== null){
-    //     console.log(`Client ${room.master} is now disconnected and not master anymore`);
-    //     // var socketlist = io.sockets.connected();
 
-    //     // console.log(socketlist);
-    //     room.master = io.sockets.clients().sockets;
-    //     console.log(`Client ${room.master} is now master`);
-    //   }
-    // }
+    for(var room of rooms){
+      if(room.master === socket.id){
+        io.of('/').in(room.id).clients(function (error, clients) {
+          if (error) throw error;
+          let userlist = clients;
+          if(userlist.length != 0){
+            room.master = userlist[0];
+          }
+          else{
+            rooms.splice(rooms.indexOf(room.id), 1);
+          }
+        });
+      }
+    }
     console.log(`Client ${socket.id} disconnected`);
+  });
+
+  socket.on('getrooms',() => {
+    socket.emit('rooms', JSON.stringify(rooms));
   });
 });
 
-setInterval(() => io.emit('time', new Date().toTimeString()), 1000);
+setInterval(() => 
+io.emit('time', new Date().toTimeString())
+, 1000);

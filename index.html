@@ -1,14 +1,40 @@
 <html>
-  <body>
-    <p id='server-time'></p>
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      var socket = io();
-      var el = document.getElementById('server-time');
 
-      socket.on('time', function(timeString) {
-        el.innerHTML = 'Server time: ' + timeString;
-      });
-    </script>
-  </body>
+<body>
+  <p id='server-time'></p>
+  <ul id="room-list" style="list-style-type:none;">
+    <li>rum</li>
+  </ul>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+    var el = document.getElementById('server-time');
+    var rl = document.getElementById('room-list');
+
+    socket.on('time', function (timeString) {
+      el.innerHTML = 'Server time: ' + timeString;
+    });
+
+    socket.emit('getrooms');
+
+    socket.on('rooms', function (obj) {
+      var rooms = JSON.parse(obj);
+      console.log(rooms);
+        for (var room of rooms) {
+          console.log(room.id);
+          if(room.id != null){
+            rl.innerHTML = '';
+            if(window.location.hostname === 'localhost'){
+              rl.innerHTML += '<li><a target="_blank" href="http://' + window.location.hostname + ':4200/' + room.id + '">' + window.location.hostname + ':4200/' + room.id + '</a></li>';
+            }
+            else{
+              rl.innerHTML +='<li><a target="_blank" href="https://hamalainen.herokuapp.com/' + room.id + '">' + 'https://hamalainen.herokuapp.com/' + room.id + '</a></li>';
+            }
+            
+          }
+        }
+    });
+  </script>
+</body>
+
 </html>
