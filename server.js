@@ -120,8 +120,7 @@ io.on('connection', (socket) => {
             room.playerState = res.event.data;
             room.currentVideo = res.currentVideo;
             room.currentTime = res.currentTime;
-            // socket.to(res.roomId).emit('playerState', room);
-            io.in(res.roomId).emit('playerState', room);
+            socket.to(res.roomId).emit('playerState', room);
           }
           else {
             console.log('peasant play');
@@ -135,8 +134,7 @@ io.on('connection', (socket) => {
             room.playerState = res.event.data;
             room.currentVideo = res.currentVideo;
             room.currentTime = res.currentTime;
-            // socket.to(res.roomId).emit('playerState', room);
-            io.in(res.roomId).emit('playerState', room);
+            socket.to(res.roomId).emit('playerState', room);
           }
           else {
             console.log('peasant pause');
@@ -148,8 +146,7 @@ io.on('connection', (socket) => {
           room.playerState = res.event.data;
           room.currentVideo = res.currentVideo;
           room.currentTime = res.currentTime;
-          // socket.to(res.roomId).emit('playerState', room);
-          io.in(res.roomId).emit('playerState', room);
+          socket.to(res.roomId).emit('playerState', room);
         }
       }
     }
