@@ -20,20 +20,59 @@
     socket.on('rooms', function (obj) {
       var rooms = JSON.parse(obj);
       console.log(rooms);
-        for (var room of rooms) {
-          console.log(room.id);
-          if(room.id != null){
-            rl.innerHTML = '';
-            if(window.location.hostname === 'localhost'){
-              rl.innerHTML += '<li><a target="_blank" href="http://' + window.location.hostname + ':4200/' + room.id + '">' + window.location.hostname + ':4200/' + room.id + '</a></li>';
-            }
-            else{
-              rl.innerHTML +='<li><a target="_blank" href="https://hamalainen.herokuapp.com/' + room.id + '">' + 'https://hamalainen.herokuapp.com/' + room.id + '</a></li>';
-            }
-            
+      for (var room of rooms) {
+        console.log(room.id);
+        if (room.id != null) {
+          rl.innerHTML = '';
+          if (window.location.hostname === 'localhost') {
+            rl.innerHTML += '<li><a target="_blank" href="http://' + window.location.hostname + ':4200/' + room.id + '">' + window.location.hostname + ':4200/' + room.id + '</a><ul>' +
+              'roomname: ' + room.name + '<br>' +
+              'master: ' + room.master + '<br>' +
+              'playlist:' + '<br>' +
+              videoData(room) +
+              'currentVideo: ' + room.currentVideo + '<br>' +
+              'playerState: ' + room.playerState + '<br>' +
+              'currentTime: ' + room.currentTime + '<br>' +
+              'users: ' + '<br>' +
+              userData(room) +
+              '</ul></li> <br>';
           }
+          else {
+            rl.innerHTML += '<li><a target="_blank" href="https://hamalainen.herokuapp.com/' + room.id + '">' + 'https://hamalainen.herokuapp.com/' + room.id + '</a></li>' +
+              'roomname: ' + room.name + '<br>' +
+              'master: ' + room.master + '<br>' +
+              'playlist:' + '<br>' +
+              videoData(room) +
+              'currentVideo: ' + room.currentVideo + '<br>' +
+              'playerState: ' + room.playerState + '<br>' +
+              'currentTime: ' + room.currentTime + '<br>' +
+              'users: ' + '<br>' +
+              userData(room) +
+              '</ul></li> <br>';
+          }
+
         }
+      }
     });
+
+    function videoData(room) {
+      var videostr = '';
+      for (var video of room.playlist) {
+        videostr += '&nbsp {video: ' + video + '},<br>';
+      }
+      return videostr;
+    }
+
+    function userData(room) {
+      var userstr = '';
+      for (var user of room.users) {
+        userstr +=
+          '&nbsp {userName: ' + user.userName + '<br>' +
+          '&nbsp socketId: ' + user.socketId + '<br>' +
+          '&nbsp master: ' + user.master + '},<br>';
+      }
+      return userstr;
+    }
   </script>
 </body>
 

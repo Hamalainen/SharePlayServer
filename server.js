@@ -23,33 +23,53 @@ let rooms = [
     // currentVideo: null,
     // playerState: 8,
     // currentTime: 0
+    // users: [
+    //   {
+    //     userName: '',
+    //     socketId: '',
+    //     master: true 
+    //   }
+    // ]
   }
 ]
 
 io.on('connection', (socket) => {
 
-  socket.on('joinroom', (roomId) => {
+  socket.on('joinroom', (res) => {
     var roomExist = false;
-    socket.join(roomId)
+    socket.join(res.roomId)
     for (var room of rooms) {
-      if (room.id === roomId) {
+      if (room.id === res.roomId) {
         roomExist = true;
-        io.in(roomId).emit('room', room);
+        var user = {
+          userName: res.userName,
+          socketId: socket.id,
+          master: false
+        }
+        room.users.push(user);
+        io.in(res.roomId).emit('room', room);
         console.log(`socket ${socket.id} joined ${room.id}`);
         break;
       }
     }
     if (!roomExist) {
       var room = {
-        id: roomId,
+        id: res.roomId,
         master: socket.id,
         playlist: [],
         currentVideo: null,
         playerState: 8,
-        currentTime: 0
+        currentTime: 0,
+        users: [
+          {
+            userName: res.userName,
+            socketId: socket.id,
+            master: true
+          }
+        ]
       };
       rooms.push(room);
-      io.in(roomId).emit('room', room);
+      io.in(res.roomId).emit('room', room);
       console.log(`socket ${socket.id} created ${room.id}`);
     }
 
@@ -74,9 +94,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('realTime', (res) => {
-    for(var room of rooms){
-      if(room.id === res.roomId){
-        if(room.master === socket.id){
+    for (var room of rooms) {
+      if (room.id === res.roomId) {
+        if (room.master === socket.id) {
           room.currentVideo = res.currentVideo;
           room.currentTime = res.currentTime;
         }
@@ -155,28 +175,36 @@ io.on('connection', (socket) => {
   console.log(`Client ${socket.id} connected`);
   socket.on('disconnect', () => {
 
-    for(var room of rooms){
-      if(room.master === socket.id){
+    for (var room of rooms) {
+      if (room.master === socket.id) {
         io.of('/').in(room.id).clients(function (error, clients) {
           if (error) throw error;
           let userlist = clients;
-          if(userlist.length != 0){
+          if (userlist.length != 0) {
+            // if room not empty set master to the socket at first place in room
             room.master = userlist[0];
+            for (var user in room.users) {
+              if (user.socketId === room.master) {
+                user.master = true;
+              }
+            }
           }
-          else{
+          else {
             rooms.splice(rooms.indexOf(room.id), 1);
           }
         });
+        //removing user from usersarray in room
+        room.users.splice(room.users.socketId.indexOf(socket.id), 1);
       }
     }
     console.log(`Client ${socket.id} disconnected`);
   });
 
-  socket.on('getrooms',() => {
+  socket.on('getrooms', () => {
     socket.emit('rooms', JSON.stringify(rooms));
   });
 });
 
-setInterval(() => 
-io.emit('time', new Date().toTimeString())
-, 1000);
+setInterval(() =>
+  io.emit('time', new Date().toTimeString())
+  , 1000);
