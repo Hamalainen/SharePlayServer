@@ -1,8 +1,8 @@
-<html>
+<html style="background-color:#202020">
 
 <body>
   <p id='server-time'></p>
-  <ul id="room-list" style="list-style-type:none;">
+  <ul id="room-list" style="list-style-type:none; color:aliceblue">
     <li>rum</li>
   </ul>
   <script src="/socket.io/socket.io.js"></script>
@@ -15,19 +15,20 @@
       el.innerHTML = 'Server time: ' + timeString;
     });
 
-    socket.emit('getrooms');
+    setInterval(() => 
+      socket.emit('getrooms'),1000);
+    
 
     socket.on('rooms', function (obj) {
       var rooms = JSON.parse(obj);
-      console.log(rooms);
+      // console.log(rooms);
+      rl.innerHTML = '';
       for (var room of rooms) {
-        console.log(room.id);
+        // console.log(room.id);
         if (room.id != null) {
-          rl.innerHTML = '';
           if (window.location.hostname === 'localhost') {
-            rl.innerHTML += '<li><a target="_blank" href="http://' + window.location.hostname + ':4200/' + room.id + '">' + window.location.hostname + ':4200/' + room.id + '</a><ul>' +
-              'roomname: ' + room.name + '<br>' +
-              'master: ' + room.master + '<br>' +
+            rl.innerHTML += '<li>rum</li><br>' +
+              '<li><a target="_blank" href="http://' + window.location.hostname + ':4200/' + room.id + '">' + window.location.hostname + ':4200/' + room.id + '</a><ul>' +
               'playlist:' + '<br>' +
               videoData(room) +
               'currentVideo: ' + room.currentVideo + '<br>' +
@@ -35,12 +36,11 @@
               'currentTime: ' + room.currentTime + '<br>' +
               'users: ' + '<br>' +
               userData(room) +
-              '</ul></li> <br>';
+              '</ul></li><br>';
           }
           else {
-            rl.innerHTML += '<li><a target="_blank" href="https://hamalainen.herokuapp.com/' + room.id + '">' + 'https://hamalainen.herokuapp.com/' + room.id + '</a></li>' +
-              'roomname: ' + room.name + '<br>' +
-              'master: ' + room.master + '<br>' +
+            rl.innerHTML += '<li>rum</li><br>' +
+              '<li><a target="_blank" href="https://hamalainen.herokuapp.com/' + room.id + '">' + 'https://hamalainen.herokuapp.com/' + room.id + '</a><ul>' +
               'playlist:' + '<br>' +
               videoData(room) +
               'currentVideo: ' + room.currentVideo + '<br>' +
@@ -48,9 +48,8 @@
               'currentTime: ' + room.currentTime + '<br>' +
               'users: ' + '<br>' +
               userData(room) +
-              '</ul></li> <br>';
+              '</ul></li><br>';
           }
-
         }
       }
     });
