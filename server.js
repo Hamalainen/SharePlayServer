@@ -102,6 +102,29 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('addedUsername', (res) => {
+    console.log('username: ' + res.userName);
+    console.log('roomid: ' + res.roomId);
+    for(var room of rooms){
+      if(room.id == res.roomId){
+        console.log('roomfound');
+        // if(room.users === undefined){
+        //   continue;
+        // }
+        for(var user of room.users){
+          if(user.socketId == socket.id){
+            console.log('userfound');
+            user.userName = res.userName;
+            io.in(res.roomId).emit('room', room);
+            break;
+          }
+        }
+        break;
+      }
+    }
+  });
+
+
   socket.on('addedToPlaylist', (res) => {
     for (var room of rooms) {
       if (room.id === res.roomId) {
@@ -129,7 +152,7 @@ io.on('connection', (socket) => {
   socket.on('playerEvent', (res) => {
     for (var room of rooms) {
       if (room.id === res.roomId) {
-        for (user of room.users) {
+        for (var user of room.users) {
           if (user.id == socket.id) {
             if (res.event.data == 1) {
               // play - only mastersocket can play.
@@ -178,19 +201,16 @@ io.on('connection', (socket) => {
     var userIndex = 0;
 
     for (var room of rooms) {
-      console.log()
       if (room.users === undefined) {
         continue;
       }
       else {
         for (var user of room.users) {
-          console.log("iterating");
           if (user.socketId == socket.id) {
             roomId = room.id;
             if (user.master) {
               if (room.users.length > 1) {
                 // if room not empty set master to the socket at first place in room
-                console.log('setting master');
                 room.users[1].master = true;
               }
               else {
@@ -215,6 +235,8 @@ io.on('connection', (socket) => {
   socket.on('getrooms', () => {
     socket.emit('rooms', JSON.stringify(rooms));
   });
+
+  
 });
 
 setInterval(() => function () {
