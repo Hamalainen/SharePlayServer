@@ -108,9 +108,9 @@ io.on('connection', (socket) => {
     for(var room of rooms){
       if(room.id == res.roomId){
         console.log('roomfound');
-        // if(room.users === undefined){
-        //   continue;
-        // }
+        if(room.users === undefined){
+          continue;
+        }
         for(var user of room.users){
           if(user.socketId == socket.id){
             console.log('userfound');
