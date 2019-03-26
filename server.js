@@ -153,32 +153,28 @@ io.on('connection', (socket) => {
     for (var room of rooms) {
       if (room.id === res.roomId) {
         for (var user of room.users) {
-          if (user.id == socket.id) {
+          if (user.socketId == socket.id) {
             if (res.event.data == 1) {
               // play - only mastersocket can play.
               if (user.master) {
-                console.log('master play');
                 room.playerState = res.event.data;
                 room.currentVideo = res.currentVideo;
                 room.currentTime = res.currentTime;
                 socket.to(res.roomId).emit('playerState', room);
               }
               else {
-                console.log('peasant play');
                 io.in(res.roomId).emit('playerState', room);
               }
             }
             if (res.event.data == 2) {
               // // pause - only mastersocket can pause.
               if (user.master) {
-                console.log('master pause');
                 room.playerState = res.event.data;
                 room.currentVideo = res.currentVideo;
                 room.currentTime = res.currentTime;
                 socket.to(res.roomId).emit('playerState', room);
               }
               else {
-                console.log('peasant pause');
                 io.in(res.roomId).emit('playerState', room);
               }
             }
