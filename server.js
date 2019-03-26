@@ -34,7 +34,6 @@ let rooms = [
 io.on('connection', (socket) => {
 
   socket.on('joinroom', (res) => {
-    console.log(JSON.stringify(res));
     var roomExist = false;
     socket.join(res.roomId)
     for (var room of rooms) {
@@ -103,17 +102,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('addedUsername', (res) => {
-    console.log('username: ' + res.userName);
-    console.log('roomid: ' + res.roomId);
     for(var room of rooms){
       if(room.id == res.roomId){
-        console.log('roomfound');
         if(room.users === undefined){
           continue;
         }
         for(var user of room.users){
           if(user.socketId == socket.id){
-            console.log('userfound');
             user.userName = res.userName;
             io.in(res.roomId).emit('room', room);
             break;
@@ -129,7 +124,6 @@ io.on('connection', (socket) => {
     for (var room of rooms) {
       if (room.id === res.roomId) {
         if (!room.playlist.includes(res.video.id)) {
-          console.log('added: ' + res.video.id);
           room.playlist.push(res.video.id);
           break;
         }
